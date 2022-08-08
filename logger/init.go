@@ -56,3 +56,9 @@ func WithContext(ctx context.Context) *zap.Logger {
 		return logger
 	}
 }
+
+// Sync - flushes any buffered log entries. Should be called before application
+// exits.
+func Sync() {
+	logger.Sync()
+}
