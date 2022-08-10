@@ -1,0 +1,27 @@
+name: logger-test
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - logger/**
+  pull_request:
+    paths:
+      - logger/**
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./logger
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18.3
+
+    - name: Test
+      run: go test -v
