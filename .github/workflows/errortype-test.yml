@@ -11,7 +11,7 @@ on:
     paths:
       - errortype/**
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
