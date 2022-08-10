@@ -10,32 +10,29 @@ type IError interface {
 	Msg() string
 }
 
+// Error - contains ErrorType and error msg providing stack trace error.
 type Error struct {
 	detail ErrorType
 	msg    string
 }
 
+// ErrorType - contains details to differentiate between Errors.
 type ErrorType struct {
 	code int32
 	pkg  string
 }
 
+// Error - returns formatted string containing error details and error msg.
 func (e *Error) Error() string {
 	return fmt.Sprintf(ErrFormat, e.detail.code, e.detail.pkg, e.msg)
 }
 
+// Msg - returns error msg.
 func (e *Error) Msg() string {
 	return e.msg
 }
 
-func (e *Error) Code() int32 {
-	return e.detail.code
-}
-
-func (e *Error) Pkg() string {
-	return e.detail.pkg
-}
-
+// New - constructor for custom Error
 func (e ErrorType) New(msg string) IError {
 	return &Error{
 		detail: e,
@@ -43,6 +40,7 @@ func (e ErrorType) New(msg string) IError {
 	}
 }
 
+// Is - checks if err is of same code and package as ErrorType
 func (e ErrorType) Is(err error) bool {
 	otherErr := &Error{}
 
@@ -53,6 +51,7 @@ func (e ErrorType) Is(err error) bool {
 	return otherErr.detail.code == e.code && otherErr.detail.pkg == e.pkg
 }
 
+// Wrap - if err is of same ErrorType, then no wrapping is done.
 func (e ErrorType) Wrap(err error) IError {
 	otherErr := &Error{}
 
@@ -71,6 +70,8 @@ func (e ErrorType) Wrap(err error) IError {
 	}
 }
 
+// WrapWithMsg - if err is of same ErrorType, err's msg is changed
+// to the provided msg.
 func (e ErrorType) WrapWithMsg(err error, msg string) IError {
 	otherErr := &Error{}
 
