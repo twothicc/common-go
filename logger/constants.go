@@ -10,7 +10,9 @@ const (
 	LOG_FILENAME = "server.log"
 )
 
+type LoggerKey int
+
 // logger context key
 const (
-	LOGGER_KEY = iota
+	LOGGER_KEY LoggerKey = iota
 )
