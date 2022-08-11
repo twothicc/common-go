@@ -10,8 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -126,28 +124,26 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_ctxtags.UnaryServerInterceptor(),
-		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
-		grpc_recovery.UnaryServerInterceptor(),
+		grpc_prometheus.UnaryServerInterceptor,
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_ctxtags.StreamServerInterceptor(),
-		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
-		grpc_recovery.StreamServerInterceptor(),
+		grpc_prometheus.StreamServerInterceptor,
 	}
 
-	if !config.disableProm {
-		unaryInterceptors = insertIntoUnaryServerInterceptors(
-			unaryInterceptors,
-			grpc_prometheus.UnaryServerInterceptor,
-			PROMETHEUS_INTERCEPTOR_IDX,
-		)
-		streamInterceptors = insertIntoStreamServerInterceptors(
-			streamInterceptors,
-			grpc_prometheus.StreamServerInterceptor,
-			PROMETHEUS_INTERCEPTOR_IDX,
-		)
-	}
+	// if !config.disableProm {
+	// 	unaryInterceptors = insertIntoUnaryServerInterceptors(
+	// 		unaryInterceptors,
+	// 		grpc_prometheus.UnaryServerInterceptor,
+	// 		PROMETHEUS_INTERCEPTOR_IDX,
+	// 	)
+	// 	streamInterceptors = insertIntoStreamServerInterceptors(
+	// 		streamInterceptors,
+	// 		grpc_prometheus.StreamServerInterceptor,
+	// 		PROMETHEUS_INTERCEPTOR_IDX,
+	// 	)
+	// }
 
 	return []grpc.ServerOption{
 		keepAliveParams,
