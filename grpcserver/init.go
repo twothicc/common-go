@@ -26,6 +26,7 @@ type Server struct {
 	configs    *ServerConfigs
 	grpcServer *grpc.Server
 	httpServer *http.Server
+	connMux    cmux.CMux
 }
 
 // InitAndRunGrpcServer - Configures, initializes and runs the grpc server,
@@ -79,6 +80,7 @@ func (g *Server) Run(ctx context.Context) {
 
 	// cmux multiplexes connections based on payload, allowing various protocols to run on the same TCP listener
 	m := cmux.New(lis)
+	g.connMux = m
 	grpcL := m.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
 	httpL := m.Match(cmux.HTTP1Fast())
 
@@ -90,7 +92,7 @@ func (g *Server) Run(ctx context.Context) {
 
 	go func() {
 		if err := g.httpServer.Serve(httpL); err != nil {
-			logger.WithContext(ctx).Error("fail to server http server", zap.Error(err))
+			logger.WithContext(ctx).Error("fail to serve http server", zap.Error(err))
 		}
 	}()
 
@@ -110,8 +112,18 @@ func (g *Server) ListenSignals(ctx context.Context) {
 	logger.WithContext(ctx).Info("receive signal, stop server", zap.String("signal", sig.String()))
 	time.Sleep(1 * time.Second)
 
+	if g.connMux != nil {
+		g.connMux.Close()
+	}
+
 	if g.grpcServer != nil {
 		g.grpcServer.GracefulStop()
+	}
+
+	if g.httpServer != nil {
+		if err := g.httpServer.Shutdown(ctx); err != nil {
+			logger.WithContext(ctx).Error("fail to gracefully shutdown http server", zap.Error(err))
+		}
 	}
 
 	logger.Sync()
