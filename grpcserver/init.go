@@ -125,28 +125,27 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_ctxtags.UnaryServerInterceptor(),
-		grpc_prometheus.UnaryServerInterceptor,
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_ctxtags.StreamServerInterceptor(),
-		grpc_prometheus.StreamServerInterceptor,
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
 	}
 
-	// if !config.disableProm {
-	// 	unaryInterceptors = insertIntoUnaryServerInterceptors(
-	// 		unaryInterceptors,
-	// 		grpc_prometheus.UnaryServerInterceptor,
-	// 		PROMETHEUS_INTERCEPTOR_IDX,
-	// 	)
-	// 	streamInterceptors = insertIntoStreamServerInterceptors(
-	// 		streamInterceptors,
-	// 		grpc_prometheus.StreamServerInterceptor,
-	// 		PROMETHEUS_INTERCEPTOR_IDX,
-	// 	)
-	// }
+	if !config.disableProm {
+		insertIntoUnaryServerInterceptors(
+			unaryInterceptors,
+			grpc_prometheus.UnaryServerInterceptor,
+			PROMETHEUS_INTERCEPTOR_IDX,
+		)
+
+		insertIntoStreamServerInterceptors(
+			streamInterceptors,
+			grpc_prometheus.StreamServerInterceptor,
+			PROMETHEUS_INTERCEPTOR_IDX,
+		)
+	}
 
 	return []grpc.ServerOption{
 		keepAliveParams,
