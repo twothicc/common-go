@@ -97,7 +97,7 @@ func (g *Server) Run(ctx context.Context) {
 	}()
 
 	if err := m.Serve(); err != nil {
-		logger.WithContext(ctx).Error("failed to serve grpc and http server", zap.Error(err))
+
 	}
 }
 
