@@ -112,11 +112,6 @@ func (g *Server) ListenSignals(ctx context.Context) {
 	logger.WithContext(ctx).Info("receive signal, stop server", zap.String("signal", sig.String()))
 	time.Sleep(1 * time.Second)
 
-	if g.connMux != nil {
-		g.connMux.Close()
-		logger.WithContext(ctx).Info("stop cmux server")
-	}
-
 	if g.grpcServer != nil {
 		g.grpcServer.GracefulStop()
 		logger.WithContext(ctx).Info("stop grpc server")
@@ -128,6 +123,11 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		} else {
 			logger.WithContext(ctx).Info("stop http server")
 		}
+	}
+
+	if g.connMux != nil {
+		g.connMux.Close()
+		logger.WithContext(ctx).Info("stop cmux server")
 	}
 
 	logger.Sync()
