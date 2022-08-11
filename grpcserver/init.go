@@ -112,14 +112,11 @@ func (g *Server) ListenSignals(ctx context.Context) {
 	logger.WithContext(ctx).Info("receive signal, stop server", zap.String("signal", sig.String()))
 	time.Sleep(1 * time.Second)
 	logger.WithContext(ctx).Info("test1")
-	if g.grpcServer != nil {
-		logger.WithContext(ctx).Info("test2")
-		g.grpcServer.GracefulStop()
-	}
 
-	logger.WithContext(ctx).Info("test3")
+	logger.WithContext(ctx).Info("test2")
 
 	if g.httpServer != nil {
+		logger.WithContext(ctx).Info("test3")
 		if err := g.httpServer.Shutdown(ctx); err != nil {
 			logger.WithContext(ctx).Error("fail to gracefully shutdown http server", zap.Error(err))
 		}
@@ -127,6 +124,11 @@ func (g *Server) ListenSignals(ctx context.Context) {
 
 	if g.connMux != nil {
 		g.connMux.Close()
+	}
+
+	if g.grpcServer != nil {
+		logger.WithContext(ctx).Info("test4")
+		g.grpcServer.GracefulStop()
 	}
 
 	logger.Sync()
