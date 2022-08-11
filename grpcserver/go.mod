@@ -6,6 +6,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/prometheus/client_golang v1.13.0
+	github.com/soheilhy/cmux v0.1.5
 	github.com/twothicc/common-go/logger v0.0.0-20220811074305-244cfcfaf3cf
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.48.0
