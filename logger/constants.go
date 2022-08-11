@@ -7,7 +7,8 @@ const (
 
 // log file constants
 const (
-	LOG_FILENAME = "server.log"
+	LOG_FILENAME   = "server.log"
+	LOG_PERMISSION = 0o644
 )
 
 type LoggerKey int

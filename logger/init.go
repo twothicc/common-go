@@ -20,7 +20,7 @@ func InitLogger(isTest bool) {
 	config.ConsoleSeparator = CONSOLE_SEPARATOR
 	fileEncoder := zapcore.NewConsoleEncoder(config)
 
-	logFile, _ := os.OpenFile(LOG_FILENAME, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, _ := os.OpenFile(LOG_FILENAME, os.O_APPEND|os.O_CREATE|os.O_WRONLY, LOG_PERMISSION)
 	writer := zapcore.AddSync(logFile)
 
 	defaultLogLevel := zapcore.InfoLevel

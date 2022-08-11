@@ -1,4 +1,10 @@
-all: lint test
+all: format lint test
+
+fieldAlignment:
+	fieldalignment -fix github.com/twothicc/common-go/logger
+
+format:
+	gofmt -s -w $$(find . -type f -name '*.go'| grep -v "/vendor/")
 
 lint:
 	golangci-lint run
