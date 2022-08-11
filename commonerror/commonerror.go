@@ -13,23 +13,28 @@ type ICommonError interface {
 	Msg() string
 }
 
+// CommonError - standardizes error reporting between grpc services
 type CommonError struct {
 	code int32
 	msg  string
 }
 
+// Error - returns a formatted string describing common error code and message
 func (ce *CommonError) Error() string {
 	return fmt.Sprintf(ErrorFormat, ce.code, ce.msg)
 }
 
+// Code - returns common error code
 func (ce *CommonError) Code() int32 {
 	return ce.code
 }
 
+// Msg - returns common error message
 func (ce *CommonError) Msg() string {
 	return ce.msg
 }
 
+// New - initializes a new common error
 func New(code int32, msg string) ICommonError {
 	if code == CodeOk {
 		return nil
@@ -41,6 +46,7 @@ func New(code int32, msg string) ICommonError {
 	}
 }
 
+// Convert - converts inbuilt error to common error
 func Convert(err error) ICommonError {
 	if err == nil {
 		return &CommonError{}
