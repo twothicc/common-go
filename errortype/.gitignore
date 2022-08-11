@@ -25,3 +25,6 @@ build
 
 # log file
 server.log
+
+# vscode
+.vscode/

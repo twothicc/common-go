@@ -12,14 +12,14 @@ type IError interface {
 
 // Error - contains ErrorType and error msg providing stack trace error.
 type Error struct {
-	detail ErrorType
 	msg    string
+	detail ErrorType
 }
 
 // ErrorType - contains details to differentiate between Errors.
 type ErrorType struct {
-	code int32
 	pkg  string
+	code int32
 }
 
 // Error - returns formatted string containing error details and error msg.
