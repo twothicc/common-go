@@ -32,7 +32,7 @@ func InitAndRunGrpcServer(ctx context.Context, config *ServerConfigs) {
 	server := InitGrpcServer(ctx, config)
 
 	if !server.configs.disableProm {
-		go server.StartPrometheusMonitoring()
+		go server.StartPrometheusMonitoring(ctx)
 	}
 
 	go server.ListenSignals(ctx)
@@ -84,10 +84,6 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *grpcServer {
 		registerServerHandler(server)
 	}
 
-	if !config.disableProm {
-
-	}
-
 	return &grpcServer{
 		server:  server,
 		configs: config,
@@ -127,8 +123,14 @@ func (g *grpcServer) ListenSignals(ctx context.Context) {
 }
 
 // StartPrometheusMonitoring
-func (g *grpcServer) StartPrometheusMonitoring() {
+func (g *grpcServer) StartPrometheusMonitoring(ctx context.Context) {
 	grpc_prometheus.Register(g.server)
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(fmt.Sprintf("localhost:%s", PROMETHEUS_PORT), nil)
+
+	if err := http.ListenAndServe(
+		fmt.Sprintf("localhost:%s", PROMETHEUS_PORT),
+		nil,
+	); err != nil {
+		logger.WithContext(ctx).Error("fail to start prometheus monitor", zap.Error(err))
+	}
 }
