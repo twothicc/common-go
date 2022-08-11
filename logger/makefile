@@ -4,4 +4,4 @@ lint:
 	golangci-lint run
 
 test:
-	go test errortype/...
+	go test -v
