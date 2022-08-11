@@ -3,7 +3,7 @@ package grpcserver
 import "time"
 
 const (
-	PROMETHEUS_INTERCEPTOR_IDX = 0
+	PROMETHEUS_INTERCEPTOR_IDX = 1
 )
 
 const (
