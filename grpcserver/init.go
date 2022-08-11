@@ -130,8 +130,9 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		logger.WithContext(ctx).Info("stop cmux server")
 	}
 
-	logger.Sync()
 	logger.WithContext(ctx).Info("stop server gracefully")
+	time.Sleep(1 * time.Second)
+	logger.Sync()
 }
 
 func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.ServerOption {
