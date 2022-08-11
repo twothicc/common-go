@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/soheilhy/cmux"
@@ -121,36 +123,30 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 		Time:              config.keepAliveInterval,
 	})
 
-	// unaryInterceptors := []grpc.UnaryServerInterceptor{
-	// 	grpc_ctxtags.UnaryServerInterceptor(),
-	// 	grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
-	// 	grpc_recovery.UnaryServerInterceptor(),
-	// }
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		grpc_prometheus.UnaryServerInterceptor,
+		//grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
+		grpc_recovery.UnaryServerInterceptor(),
 	}
 
-	// streamInterceptors := []grpc.StreamServerInterceptor{
-	// 	grpc_ctxtags.StreamServerInterceptor(),
-	// 	grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
-	// 	grpc_recovery.StreamServerInterceptor(),
-	// }
 	streamInterceptors := []grpc.StreamServerInterceptor{
-		grpc_prometheus.StreamServerInterceptor,
+		//grpc_ctxtags.StreamServerInterceptor(),
+		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
+		grpc_recovery.StreamServerInterceptor(),
 	}
 
-	// if !config.disableProm {
-	// 	insertIntoUnaryServerInterceptors(
-	// 		unaryInterceptors,
-	// 		grpc_prometheus.UnaryServerInterceptor,
-	// 		PROMETHEUS_INTERCEPTOR_IDX,
-	// 	)
-	// 	insertIntoStreamServerInterceptors(
-	// 		streamInterceptors,
-	// 		grpc_prometheus.StreamServerInterceptor,
-	// 		PROMETHEUS_INTERCEPTOR_IDX,
-	// 	)
-	// }
+	if !config.disableProm {
+		insertIntoUnaryServerInterceptors(
+			unaryInterceptors,
+			grpc_prometheus.UnaryServerInterceptor,
+			PROMETHEUS_INTERCEPTOR_IDX,
+		)
+		insertIntoStreamServerInterceptors(
+			streamInterceptors,
+			grpc_prometheus.StreamServerInterceptor,
+			PROMETHEUS_INTERCEPTOR_IDX,
+		)
+	}
 
 	return []grpc.ServerOption{
 		keepAliveParams,
