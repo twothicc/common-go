@@ -26,13 +26,20 @@ type grpcServer struct {
 	server  *grpc.Server
 }
 
+// InitAndRunGrpcServer - Configures, initializes and runs the grpc server,
+// along with prometheus monitoring if specified.
 func InitAndRunGrpcServer(ctx context.Context, config *ServerConfigs) {
 	server := InitGrpcServer(ctx, config)
+
+	if !server.configs.disableProm {
+		go server.StartPrometheusMonitoring()
+	}
 
 	go server.ListenSignals(ctx)
 	server.Run(ctx)
 }
 
+// InitGrpcServer - configures and initializes a grpc server
 func InitGrpcServer(ctx context.Context, config *ServerConfigs) *grpcServer {
 	keepAliveParams := grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionIdle: config.maxIdleConn,
@@ -78,8 +85,7 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *grpcServer {
 	}
 
 	if !config.disableProm {
-		grpc_prometheus.Register(server)
-		http.Handle("/metrics", promhttp.Handler())
+
 	}
 
 	return &grpcServer{
@@ -88,9 +94,8 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *grpcServer {
 	}
 }
 
+// Run - starts the grpc server
 func (g *grpcServer) Run(ctx context.Context) {
-	logger.WithContext(ctx).Info("start")
-
 	logger.WithContext(ctx).Info("start grpc server")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", g.configs.port))
@@ -103,6 +108,7 @@ func (g *grpcServer) Run(ctx context.Context) {
 	}
 }
 
+// ListenSignals - listens for os signals to gracefully stop grpc server
 func (g *grpcServer) ListenSignals(ctx context.Context) {
 	signalChan := make(chan os.Signal, 1)
 
@@ -118,4 +124,11 @@ func (g *grpcServer) ListenSignals(ctx context.Context) {
 	}
 
 	logger.Sync()
+}
+
+// StartPrometheusMonitoring
+func (g *grpcServer) StartPrometheusMonitoring() {
+	grpc_prometheus.Register(g.server)
+	http.Handle("/metrics", promhttp.Handler())
+	http.ListenAndServe(fmt.Sprintf("localhost:%s", PROMETHEUS_PORT), nil)
 }
