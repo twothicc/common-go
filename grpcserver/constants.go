@@ -12,3 +12,7 @@ const (
 	DEFAULT_MAX_IDLE_CONN      = 5 * time.Minute
 	DEFAULT_KEEPALIVE_INTERVAL = 1 * time.Hour
 )
+
+const (
+	HTTP_READ_HEADER_TIMEOUT = 20 * time.Second
+)
