@@ -137,12 +137,12 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 	}
 
 	if !config.disableProm {
-		insertIntoUnaryServerInterceptors(
+		unaryInterceptors = insertIntoUnaryServerInterceptors(
 			unaryInterceptors,
 			grpc_prometheus.UnaryServerInterceptor,
 			PROMETHEUS_INTERCEPTOR_IDX,
 		)
-		insertIntoStreamServerInterceptors(
+		streamInterceptors = insertIntoStreamServerInterceptors(
 			streamInterceptors,
 			grpc_prometheus.StreamServerInterceptor,
 			PROMETHEUS_INTERCEPTOR_IDX,
