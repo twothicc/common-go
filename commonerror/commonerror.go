@@ -15,8 +15,8 @@ type ICommonError interface {
 
 // CommonError - standardizes error reporting between grpc services
 type CommonError struct {
-	code int32
 	msg  string
+	code int32
 }
 
 // Error - returns a formatted string describing common error code and message
@@ -56,8 +56,8 @@ func Convert(err error) ICommonError {
 		return ce
 	}
 
-	status := status.Convert(err)
-	code, msg := status.Code(), status.Message()
+	grpcStatus := status.Convert(err)
+	code, msg := grpcStatus.Code(), grpcStatus.Message()
 	errCode := grpcToCommonErrCode(code)
 
 	return &CommonError{
