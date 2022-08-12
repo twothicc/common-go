@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +15,10 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/twothicc/common-go/logger"
@@ -24,9 +29,10 @@ import (
 
 // Server - contains fields necessary for initializing and running servers
 type Server struct {
-	configs    *ServerConfigs
-	grpcServer *grpc.Server
-	httpServer *http.Server
+	configs      *ServerConfigs
+	grpcServer   *grpc.Server
+	httpServer   *http.Server
+	tracerCloser io.Closer
 }
 
 // InitAndRunGrpcServer - initializes and runs the grpc server,
@@ -41,7 +47,7 @@ func InitAndRunGrpcServer(ctx context.Context, config *ServerConfigs) {
 // InitGrpcServer - initializes a grpc server.
 // Also initializes a http server for prometheus monitoring if specified.
 func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
-	serverOptions := parseServerOptions(ctx, config)
+	serverOptions, tracerCloser := parseServerOptions(ctx, config)
 	grpcServer := grpc.NewServer(serverOptions...)
 
 	for _, registerServerHandler := range config.registerServerHandlers {
@@ -65,9 +71,10 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 	}
 
 	return &Server{
-		grpcServer: grpcServer,
-		httpServer: httpServer,
-		configs:    config,
+		grpcServer:   grpcServer,
+		httpServer:   httpServer,
+		configs:      config,
+		tracerCloser: tracerCloser,
 	}
 }
 
@@ -127,24 +134,42 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		logger.WithContext(ctx).Info("grpc server gracefully stopped")
 	}
 
+	if g.tracerCloser != nil {
+		if err := g.tracerCloser.Close(); err != nil {
+			logger.WithContext(ctx).Error("fail to close jaeger tracer")
+		}
+	}
+
 	logger.Sync()
 }
 
-func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.ServerOption {
+func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.ServerOption, io.Closer) {
 	keepAliveParams := grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionIdle: config.maxIdleConn,
 		Timeout:           config.timeout,
 		Time:              config.keepAliveInterval,
 	})
 
+	// Set jaeger tracer as global OpenTracing tracer
+	tracerCfg := jaegercfg.Configuration{}
+	tracerCloser, err := tracerCfg.InitGlobalTracer(
+		config.serviceName,
+	)
+
+	if err != nil {
+		logger.WithContext(ctx).Error("fail to initialize jaeger tracer", zap.Error(err))
+	}
+
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_opentracing.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.UnaryServerInterceptor(),
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_opentracing.StreamServerInterceptor(),
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.StreamServerInterceptor(),
 	}
@@ -167,5 +192,5 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 		keepAliveParams,
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
-	}
+	}, tracerCloser
 }
