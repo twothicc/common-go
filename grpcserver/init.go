@@ -74,8 +74,6 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 // Run - starts the grpc server.
 // Also starts http server for prometheus monitoring if specified.
 func (g *Server) Run(ctx context.Context) {
-	logger.WithContext(ctx).Info("start grpc server")
-
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", g.configs.domain, g.configs.port))
 	if err != nil {
 		logger.WithContext(ctx).Fatal("fail to listen", zap.Error(err))
@@ -83,6 +81,8 @@ func (g *Server) Run(ctx context.Context) {
 
 	if g.httpServer != nil {
 		go func() {
+			logger.WithContext(ctx).Info("start http server")
+
 			if err := g.httpServer.ListenAndServe(); err != nil {
 				if !errors.Is(err, http.ErrServerClosed) {
 					logger.WithContext(ctx).Error("fail to serve http server", zap.Error(err))
@@ -92,6 +92,8 @@ func (g *Server) Run(ctx context.Context) {
 	}
 
 	if g.grpcServer != nil {
+		logger.WithContext(ctx).Info("start grpc server")
+
 		if err := g.grpcServer.Serve(lis); err != nil {
 			logger.WithContext(ctx).Error("fail to serve grpc server", zap.Error(err))
 		}
