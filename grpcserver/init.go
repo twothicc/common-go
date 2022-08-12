@@ -109,11 +109,9 @@ func (g *Server) Run(ctx context.Context) {
 		}
 	}()
 
-	go func() {
-		if err := g.connMux.Serve(); err != nil {
-			logger.WithContext(ctx).Error("fail to serve grpc and http server", zap.Error(err))
-		}
-	}()
+	if err := g.connMux.Serve(); err != nil {
+		logger.WithContext(ctx).Error("fail to serve grpc and http server", zap.Error(err))
+	}
 }
 
 // ListenSignals - listens for os signals to gracefully stop server
