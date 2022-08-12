@@ -133,7 +133,7 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		if err := g.tracerCloser.Close(); err != nil {
 			logger.WithContext(ctx).Error("fail to close jaeger tracer")
 		} else {
-			logger.WithContext(ctx).Error("jaeger tracer closed")
+			logger.WithContext(ctx).Info("jaeger tracer closed")
 		}
 	}
 
