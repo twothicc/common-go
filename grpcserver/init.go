@@ -155,6 +155,7 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 	tracerCloser, err := tracerCfg.InitGlobalTracer(
 		config.serviceName,
 	)
+
 	if err != nil {
 		logger.WithContext(ctx).Error("fail to initialize jaeger tracer", zap.Error(err))
 	}
