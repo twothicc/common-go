@@ -87,8 +87,7 @@ func (g *Server) Run(ctx context.Context) {
 	go func() {
 		if err := g.grpcServer.Serve(grpcL); err != nil {
 			if errors.Is(err, cmux.ErrServerClosed) {
-				g.grpcServer.GracefulStop()
-				logger.WithContext(ctx).Info("grpc server gracefully stopped", zap.Error(err))
+
 			} else {
 				logger.WithContext(ctx).Error("fail to serve grpc server", zap.Error(err))
 			}
@@ -98,11 +97,7 @@ func (g *Server) Run(ctx context.Context) {
 	go func() {
 		if err := g.httpServer.Serve(httpL); err != nil {
 			if errors.Is(err, cmux.ErrServerClosed) {
-				if err := g.httpServer.Shutdown(ctx); err != nil {
-					logger.WithContext(ctx).Error("fail to gracefully stop http server", zap.Error(err))
-				} else {
-					logger.WithContext(ctx).Info("http server gracefully stopped", zap.Error(err))
-				}
+
 			} else {
 				logger.WithContext(ctx).Error("fail to serve http server", zap.Error(err))
 			}
@@ -110,7 +105,9 @@ func (g *Server) Run(ctx context.Context) {
 	}()
 
 	if err := g.connMux.Serve(); err != nil {
-		logger.WithContext(ctx).Error("fail to serve grpc and http server", zap.Error(err))
+		if errors.Is(err, cmux.ErrListenerClosed) {
+			logger.WithContext(ctx).Error("fail to serve grpc and http server", zap.Error(err))
+		}
 	}
 }
 
@@ -125,9 +122,17 @@ func (g *Server) ListenSignals(ctx context.Context) {
 	logger.WithContext(ctx).Info("receive signal, stop server", zap.String("signal", sig.String()))
 	time.Sleep(1 * time.Second)
 
-	if g.connMux != nil {
-		g.connMux.Close()
-		logger.WithContext(ctx).Info("mux server closed")
+	if g.grpcServer != nil {
+		g.grpcServer.GracefulStop()
+		logger.WithContext(ctx).Info("grpc server gracefully stopped")
+	}
+
+	if g.httpServer != nil {
+		if httpErr := g.httpServer.Shutdown(ctx); httpErr != nil {
+			logger.WithContext(ctx).Error("fail to gracefully stop http server", zap.Error(httpErr))
+		} else {
+			logger.WithContext(ctx).Info("http server gracefully stopped")
+		}
 	}
 
 	logger.Sync()
