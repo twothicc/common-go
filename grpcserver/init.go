@@ -129,15 +129,17 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		}
 	}
 
-	if g.grpcServer != nil {
-		g.grpcServer.GracefulStop()
-		logger.WithContext(ctx).Info("grpc server gracefully stopped")
-	}
-
 	if g.tracerCloser != nil {
 		if err := g.tracerCloser.Close(); err != nil {
 			logger.WithContext(ctx).Error("fail to close jaeger tracer")
+		} else {
+			logger.WithContext(ctx).Error("jaeger tracer closed")
 		}
+	}
+
+	if g.grpcServer != nil {
+		g.grpcServer.GracefulStop()
+		logger.WithContext(ctx).Info("grpc server gracefully stopped")
 	}
 
 	logger.Sync()
