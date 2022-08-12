@@ -13,8 +13,8 @@ func BasicRequestFieldExtractor() grpc_ctxtags.RequestFieldExtractorFunc {
 		method := path.Base(fullMethod)
 
 		return map[string]interface{}{
-			"grpc.service": service,
-			"grpc.method":  method,
+			"service": service,
+			"method":  method,
 		}
 	}
 }
