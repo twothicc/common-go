@@ -14,6 +14,7 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/twothicc/common-go/logger"
@@ -139,12 +140,14 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) []grpc.Serve
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_opentracing.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.UnaryServerInterceptor(),
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_opentracing.StreamServerInterceptor(),
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.StreamServerInterceptor(),
 	}
