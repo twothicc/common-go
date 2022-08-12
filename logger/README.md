@@ -20,8 +20,8 @@ By default, fields specified in defaultLogFields (if available) will be prepende
 var defaultLogFields = []string{
 	"trace.traceid",
 	"trace.spanid",
-	"grpc.service",
-	"grpc.method",
+	"grpc.request.service",
+	"grpc.request.method",
 }
 ```
 

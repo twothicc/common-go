@@ -26,8 +26,8 @@ var cLogger *ctxLogger = &ctxLogger{}
 var defaultLogFields = []string{
 	"trace.traceid",
 	"trace.spanid",
-	"grpc.service",
-	"grpc.method",
+	"grpc.request.service",
+	"grpc.request.method",
 }
 
 // InitLogger - Initializes the default logger.
