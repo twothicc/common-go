@@ -22,14 +22,15 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
+// Server - contains fields necessary for initializing and running servers
 type Server struct {
 	configs    *ServerConfigs
 	grpcServer *grpc.Server
 	httpServer *http.Server
 }
 
-// InitAndRunGrpcServer - Configures, initializes and runs the grpc server,
-// along with prometheus monitoring if specified.
+// InitAndRunGrpcServer - initializes and runs the grpc server,
+// Also initializes and runs http server for prometheus monitoring if specified.
 func InitAndRunGrpcServer(ctx context.Context, config *ServerConfigs) {
 	server := InitGrpcServer(ctx, config)
 
@@ -37,7 +38,8 @@ func InitAndRunGrpcServer(ctx context.Context, config *ServerConfigs) {
 	server.Run(ctx)
 }
 
-// InitGrpcServer - configures and initializes a grpc server
+// InitGrpcServer - initializes a grpc server.
+// Also initializes a http server for prometheus monitoring if specified.
 func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 	serverOptions := parseServerOptions(ctx, config)
 	grpcServer := grpc.NewServer(serverOptions...)
@@ -56,7 +58,7 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 		http.Handle("/metrics", httpHandler)
 
 		httpServer = &http.Server{
-			Addr:              fmt.Sprintf("localhost:%d", PROMETHEUS_PORT),
+			Addr:              fmt.Sprintf("%s:%s", config.domain, PROMETHEUS_PORT),
 			Handler:           httpHandler,
 			ReadHeaderTimeout: HTTP_READ_HEADER_TIMEOUT,
 		}
@@ -69,11 +71,12 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 	}
 }
 
-// Run - starts the grpc server
+// Run - starts the grpc server.
+// Also starts http server for prometheus monitoring if specified.
 func (g *Server) Run(ctx context.Context) {
 	logger.WithContext(ctx).Info("start grpc server")
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", g.configs.port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", g.configs.domain, g.configs.port))
 	if err != nil {
 		logger.WithContext(ctx).Fatal("fail to listen", zap.Error(err))
 	}
@@ -97,7 +100,8 @@ func (g *Server) Run(ctx context.Context) {
 	}
 }
 
-// ListenSignals - listens for os signals to gracefully stop server
+// ListenSignals - listens for os signals to gracefully stop server.
+// http server for prometheus monitoring is first stopped, followed by grpc server.
 func (g *Server) ListenSignals(ctx context.Context) {
 	signalChan := make(chan os.Signal, 1)
 

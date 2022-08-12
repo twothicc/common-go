@@ -7,6 +7,7 @@ import (
 )
 
 type ServerConfigs struct {
+	domain                 string
 	port                   string
 	registerServerHandlers []RegisterServerHandler
 	timeout                time.Duration
@@ -19,7 +20,7 @@ type ServerConfigs struct {
 type RegisterServerHandler func(s *grpc.Server)
 
 func GetServerConfigs(
-	port string,
+	domain, port string,
 	timeout time.Duration,
 	maxIdleConn time.Duration,
 	keepAliveInterval time.Duration,
@@ -28,6 +29,7 @@ func GetServerConfigs(
 	registerServerHandlers ...RegisterServerHandler,
 ) *ServerConfigs {
 	return &ServerConfigs{
+		domain:                 domain,
 		port:                   port,
 		timeout:                timeout,
 		maxIdleConn:            maxIdleConn,
@@ -39,11 +41,12 @@ func GetServerConfigs(
 }
 
 func GetDefaultServerConfigs(
-	port string,
+	domain, port string,
 	isTest bool,
 	registerServerHandlers ...RegisterServerHandler,
 ) *ServerConfigs {
 	return &ServerConfigs{
+		domain:                 domain,
 		port:                   port,
 		timeout:                DEFAULT_KEEPALIVE_TIMEOUT,
 		maxIdleConn:            DEFAULT_MAX_IDLE_CONN,
