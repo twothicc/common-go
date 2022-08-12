@@ -73,6 +73,7 @@ func WithContext(ctx context.Context) *zap.Logger {
 	}
 
 	tags := grpc_ctxtags.Extract(ctx)
+	fmt.Println(tags.Values())
 
 	for _, tagKey := range defaultLogFields {
 		if tags.Has(tagKey) {
