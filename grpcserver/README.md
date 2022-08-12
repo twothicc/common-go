@@ -28,3 +28,7 @@ grpcserver.InitAndRunGrpcServer(context.Background(), serverConfig)
 - grpc_ctxtags: adds a Tag map to context, with data populated from request body
 - grpc_zap: Integrates a zap logger into grpc handlers
 - grpc_recovery: Turns panic into grpc errors
+
+---
+
+Prometheus metrics can be accessed at `<domain>:9090`

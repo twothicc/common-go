@@ -1,6 +1,8 @@
 package grpcserver
 
-import "google.golang.org/grpc"
+import (
+	"google.golang.org/grpc"
+)
 
 func insertIntoUnaryServerInterceptors(
 	interceptors []grpc.UnaryServerInterceptor,
