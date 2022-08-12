@@ -129,15 +129,17 @@ func (g *Server) ListenSignals(ctx context.Context) {
 		}
 	}
 
-	if g.grpcServer != nil {
-		g.grpcServer.GracefulStop()
-		logger.WithContext(ctx).Info("grpc server gracefully stopped")
-	}
-
 	if g.tracerCloser != nil {
 		if err := g.tracerCloser.Close(); err != nil {
 			logger.WithContext(ctx).Error("fail to close jaeger tracer")
+		} else {
+			logger.WithContext(ctx).Info("jaeger tracer closed")
 		}
+	}
+
+	if g.grpcServer != nil {
+		g.grpcServer.GracefulStop()
+		logger.WithContext(ctx).Info("grpc server gracefully stopped")
 	}
 
 	logger.Sync()
@@ -161,14 +163,18 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 	}
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_ctxtags.UnaryServerInterceptor(
+			grpc_ctxtags.WithFieldExtractor(BasicRequestFieldExtractor()),
+		),
 		grpc_opentracing.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.UnaryServerInterceptor(),
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
-		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_ctxtags.StreamServerInterceptor(
+			grpc_ctxtags.WithFieldExtractor(BasicRequestFieldExtractor()),
+		),
 		grpc_opentracing.StreamServerInterceptor(),
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.StreamServerInterceptor(),
