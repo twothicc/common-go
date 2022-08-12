@@ -20,7 +20,7 @@ type ctxLogger struct {
 
 var ctxMarkerKey = &ctxMarker{}
 
-var cLogger *ctxLogger
+var cLogger *ctxLogger = &ctxLogger{}
 
 // defaultLogFields defines the tag keys whose values should be logged
 var defaultLogFields = []string{
