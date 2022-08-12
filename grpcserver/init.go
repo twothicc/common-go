@@ -162,7 +162,7 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_ctxtags.UnaryServerInterceptor(
-			grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor),
+			grpc_ctxtags.WithFieldExtractor(BasicRequestFieldExtractor()),
 		),
 		grpc_opentracing.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
@@ -171,7 +171,7 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_ctxtags.StreamServerInterceptor(
-			grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor),
+			grpc_ctxtags.WithFieldExtractor(BasicRequestFieldExtractor()),
 		),
 		grpc_opentracing.StreamServerInterceptor(),
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
