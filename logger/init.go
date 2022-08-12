@@ -2,15 +2,36 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"os"
 
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var logger *zap.Logger
+// ctxMarker, ctxLogger, and ctxMarkerKey are for extracting logger from ctx
+type ctxMarker struct{}
+
+type ctxLogger struct {
+	logger *zap.Logger
+	fields []zapcore.Field
+}
+
+var ctxMarkerKey = &ctxMarker{}
+
+var cLogger *ctxLogger
+
+// defaultLogFields defines the tag keys whose values should be logged
+var defaultLogFields = []string{
+	"trace.traceid",
+	"trace.spanid",
+	"grpc.service",
+	"grpc.method",
+}
 
 // InitLogger - Initializes the default logger.
+//
 // isTest indicates whether the environment is test or production.
 // logger is configured to display Info level and above for production and
 // Debug level and above for test.
@@ -31,34 +52,54 @@ func InitLogger(isTest bool) {
 	core := zapcore.NewTee(
 		zapcore.NewCore(fileEncoder, writer, defaultLogLevel),
 	)
-	logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-}
-
-// NewLogContext - adds the current zap logger into context.
-// Values specified in fields will be propagated down as part of log context.
-//
-// e.g. Pass in a request id to trace the function calls of a specific request
-// call.
-func NewLogContext(ctx context.Context, fields ...zap.Field) context.Context {
-	return context.WithValue(ctx, LOGGER_KEY, WithContext(ctx).With(fields...))
+	cLogger.logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 }
 
 // WithContext - returns the context logger, or the default logger if context
 // logger does not exist.
+//
+// Default log fields are determined by the entries of defaultLogFields.
 func WithContext(ctx context.Context) *zap.Logger {
 	if ctx == nil {
-		return logger
+		return cLogger.logger
 	}
 
-	if ctxLogger, ok := ctx.Value(LOGGER_KEY).(*zap.Logger); ok {
-		return ctxLogger
-	} else {
-		return logger
+	currLogger := cLogger
+	zapFields := []zapcore.Field{}
+
+	l, ok := ctx.Value(ctxMarkerKey).(*ctxLogger)
+	if ok && l != nil {
+		currLogger = l
 	}
+
+	tags := grpc_ctxtags.Extract(ctx)
+
+	for _, tagKey := range defaultLogFields {
+		if tags.Has(tagKey) {
+			tagValue := fmt.Sprint(tags.Values()[tagKey])
+
+			zapFields = append(zapFields, zap.String(tagKey, tagValue))
+		}
+	}
+
+	zapFields = append(zapFields, cLogger.fields...)
+
+	return currLogger.logger.With(zapFields...)
 }
 
 // Sync - flushes any buffered log entries. Should be called before application
 // exits.
 func Sync() {
-	_ = logger.Sync()
+	_ = cLogger.logger.Sync()
+}
+
+// AddPermanentFields - fields will be permanently logged by the logger before all fields
+// specified in defaultLogFields.
+func AddPermanentFields(ctx context.Context, fields ...zapcore.Field) {
+	l, ok := ctx.Value(ctxMarkerKey).(*ctxLogger)
+	if !ok || l == nil {
+		return
+	}
+
+	l.fields = append(l.fields, fields...)
 }
