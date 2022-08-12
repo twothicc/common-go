@@ -160,15 +160,20 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 		logger.WithContext(ctx).Error("fail to initialize jaeger tracer", zap.Error(err))
 	}
 
+	// Set up grpc_ctxtag WithFieldExtractor options to extract tags from incoming messages
+	ctxtagsOpts := []grpc_ctxtags.Option{
+		grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.TagBasedRequestFieldExtractor("log_fields")),
+	}
+
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_ctxtags.UnaryServerInterceptor(ctxtagsOpts...),
 		grpc_opentracing.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.UnaryServerInterceptor(),
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
-		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_ctxtags.StreamServerInterceptor(ctxtagsOpts...),
 		grpc_opentracing.StreamServerInterceptor(),
 		grpc_zap.StreamServerInterceptor(logger.WithContext(ctx)),
 		grpc_recovery.StreamServerInterceptor(),
