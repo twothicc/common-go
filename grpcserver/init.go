@@ -15,6 +15,7 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/opentracing/opentracing-go"
 
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
@@ -145,21 +146,28 @@ func (g *Server) ListenSignals(ctx context.Context) {
 	logger.Sync()
 }
 
-func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.ServerOption, io.Closer) {
+func parseServerOptions(
+	ctx context.Context,
+	configs *ServerConfigs,
+) (options []grpc.ServerOption, tracerCloser io.Closer) {
 	keepAliveParams := grpc.KeepaliveParams(keepalive.ServerParameters{
-		MaxConnectionIdle: config.maxIdleConn,
-		Timeout:           config.timeout,
-		Time:              config.keepAliveInterval,
+		MaxConnectionIdle: configs.maxIdleConn,
+		Timeout:           configs.timeout,
+		Time:              configs.keepAliveInterval,
 	})
 
 	// Set jaeger tracer as global OpenTracing tracer
-	tracerCfg := jaegercfg.Configuration{}
-	tracerCloser, err := tracerCfg.InitGlobalTracer(
-		config.serviceName,
-	)
+	// if global tracer not already registered.
+	if !opentracing.IsGlobalTracerRegistered() {
+		tracerCfg := jaegercfg.Configuration{}
 
-	if err != nil {
-		logger.WithContext(ctx).Error("fail to initialize jaeger tracer", zap.Error(err))
+		var err error
+
+		if tracerCloser, err = tracerCfg.InitGlobalTracer(
+			configs.serviceName,
+		); err != nil {
+			logger.WithContext(ctx).Error("fail to initialize jaeger tracer", zap.Error(err))
+		}
 	}
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
@@ -180,7 +188,7 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 		grpc_recovery.StreamServerInterceptor(),
 	}
 
-	if !config.disableProm {
+	if !configs.disableProm {
 		unaryInterceptors = insertIntoUnaryServerInterceptors(
 			unaryInterceptors,
 			grpc_prometheus.UnaryServerInterceptor,
@@ -194,9 +202,11 @@ func parseServerOptions(ctx context.Context, config *ServerConfigs) ([]grpc.Serv
 		)
 	}
 
-	return []grpc.ServerOption{
+	options = []grpc.ServerOption{
 		keepAliveParams,
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
-	}, tracerCloser
+	}
+
+	return options, tracerCloser
 }
