@@ -64,7 +64,7 @@ func InitGrpcServer(ctx context.Context, config *ServerConfigs) *Server {
 		http.Handle("/metrics", httpHandler)
 
 		httpServer = &http.Server{
-			Addr:              fmt.Sprintf("%s:%s", config.domain, PROMETHEUS_PORT),
+			Addr:              fmt.Sprintf("%s:%s", config.domain, PROMETHEUS_METRICS_PORT),
 			Handler:           httpHandler,
 			ReadHeaderTimeout: HTTP_READ_HEADER_TIMEOUT,
 		}

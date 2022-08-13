@@ -36,7 +36,7 @@ grpcserver.InitAndRunGrpcServer(context.Background(), serverConfig)
 
 ## Prometheus metrics
 
-Prometheus is configured to monitor default server metrics such as method handling counter and can be accessed at `<domain>:9090`
+The server is configured to report server metrics to `<domain>:9091`. An example is given below:
 
 ```
 # HELP go_threads Number of OS threads created.
@@ -71,6 +71,27 @@ grpc_server_msg_sent_total{grpc_method="HelloWorld",grpc_service="datasync.v1.He
 # TYPE grpc_server_started_total counter
 grpc_server_started_total{grpc_method="HelloWorld",grpc_service="datasync.v1.HelloWorldService",grpc_type="unary"} 3
 ```
+
+Configure your `prometheus.yml` scrape from `<domain>:9091/metrics` by adding under `scrape_configs` like so, replacing `<domain>` with your domain:
+
+```
+scrape_configs:
+  - job_name: "gRPC"
+    metrics_path: /metrics
+    stati_configs:
+      - targets: ["<domain>:9091"]
+```
+
+Make sure to have docker installed. To run Prometheus on docker, run this command:
+
+```
+docker pull prom/prometheus
+docker run -p 9090:9090 -v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+```
+
+You can then download [Grafana](https://grafana.com/grafana/download). The default username and password will be `admin`, `admin`
+
+Once in Grafana, set Prometheus as datasource and choose a suitable dashboard. [This](https://grafana.com/grafana/dashboards/14765-grpc-go/) for example.
 
 ## Jaeger UI
 

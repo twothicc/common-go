@@ -4,7 +4,7 @@ import "time"
 
 const (
 	PROMETHEUS_INTERCEPTOR_IDX = 2
-	PROMETHEUS_PORT            = "9090"
+	PROMETHEUS_METRICS_PORT    = "9091"
 )
 
 const (
