@@ -24,7 +24,7 @@ import (
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
 
-type client struct {
+type Client struct {
 	Pools        *pool.PoolSelector
 	configs      *clientConfigs
 	tracerCloser io.Closer
@@ -33,10 +33,10 @@ type client struct {
 func NewClient(
 	ctx context.Context,
 	configs *clientConfigs,
-) *client {
+) *Client {
 	unaryClientInterceptors, streamClientInterceptors, tracerCloser := parseInterceptors(ctx, configs)
 
-	return &client{
+	return &Client{
 		Pools: pool.NewPoolSelector(
 			ctx,
 			unaryClientInterceptors,
@@ -48,7 +48,7 @@ func NewClient(
 	}
 }
 
-func (gc *client) Call(
+func (gc *Client) Call(
 	ctx context.Context,
 	server, fullMethod string,
 	req interface{},
@@ -83,7 +83,7 @@ func (gc *client) Call(
 }
 
 // ListenSignals - listens for os signals and closes client if necessary.
-func (gc *client) ListenSignals(ctx context.Context) {
+func (gc *Client) ListenSignals(ctx context.Context) {
 	signalChan := make(chan os.Signal, 1)
 
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
