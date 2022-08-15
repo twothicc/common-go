@@ -32,10 +32,8 @@ var defaultLogFields = []string{
 
 // InitLogger - Initializes the default logger.
 //
-// isTest indicates whether the environment is test or production.
-// logger is configured to display Info level and above for production and
-// Debug level and above for test.
-func InitLogger(isTest bool) {
+// level indicates the lowest level of logs.
+func InitLogger(level zapcore.Level) {
 	config := zap.NewProductionEncoderConfig()
 	config.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.ConsoleSeparator = CONSOLE_SEPARATOR
@@ -44,10 +42,7 @@ func InitLogger(isTest bool) {
 	logFile, _ := os.OpenFile(LOG_FILENAME, os.O_APPEND|os.O_CREATE|os.O_WRONLY, LOG_PERMISSION)
 	writer := zapcore.AddSync(logFile)
 
-	defaultLogLevel := zapcore.InfoLevel
-	if isTest {
-		defaultLogLevel = zapcore.DebugLevel
-	}
+	defaultLogLevel := level
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(fileEncoder, writer, defaultLogLevel),
