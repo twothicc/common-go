@@ -8,6 +8,7 @@ import (
 	"github.com/twothicc/common-go/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // allowOverwrite indicates whether existing connection pool and its connections
@@ -51,6 +52,13 @@ func PoolCreator(
 			dialOptions := []grpc.DialOption{
 				grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(unaryClientInterceptors...)),
 				grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(streamClientInterceptors...)),
+			}
+
+			if !configs.EnableTLS {
+				dialOptions = append(dialOptions,
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+					grpc.WithBlock(),
+				)
 			}
 
 			conn, err := grpc.DialContext(ctx, configs.Server, dialOptions...)

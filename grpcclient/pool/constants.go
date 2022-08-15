@@ -8,4 +8,5 @@ const (
 	DEFAULT_MAX_LIFE_DURATION = 1 * time.Hour
 	DEFAULT_INIT_CONN         = 0
 	DEFAULT_MAX_CONN          = 5
+	DEFAULT_ENABLE_TLS        = false
 )

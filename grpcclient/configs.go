@@ -9,41 +9,39 @@ import (
 type clientConfigs struct {
 	defaultConnConfigs *pool.ConnConfigs
 	serviceName        string
-	domain             string
-	port               string
 	poolCreators       []pool.PoolCreatorFunc
 	isTest             bool
 	disableProm        bool
 }
 
 func GetClientConfigs(
-	serviceName, domain, port string,
+	serviceName string,
 	isTest, disableProm bool,
 	idleTimeout, createTimeout, maxLifeDuration time.Duration,
 	init, capacity int,
-	poolCreators []pool.PoolCreatorFunc,
+	enableTLS bool,
+	poolCreators ...pool.PoolCreatorFunc,
 ) *clientConfigs {
 	return &clientConfigs{
-		domain:      domain,
-		port:        port,
+		serviceName: serviceName,
 		isTest:      isTest,
 		disableProm: disableProm,
 		defaultConnConfigs: pool.GetConnConfigs(
 			idleTimeout, createTimeout, maxLifeDuration,
 			init, capacity,
+			false,
 		),
 		poolCreators: poolCreators,
 	}
 }
 
 func GetDefaultClientConfigs(
-	serviceName, domain, port string,
+	serviceName string,
 	isTest bool,
-	poolCreators []pool.PoolCreatorFunc,
+	poolCreators ...pool.PoolCreatorFunc,
 ) *clientConfigs {
 	return &clientConfigs{
-		domain:             domain,
-		port:               port,
+		serviceName:        serviceName,
 		isTest:             isTest,
 		disableProm:        false,
 		defaultConnConfigs: pool.GetDefaultConnConfigs(),

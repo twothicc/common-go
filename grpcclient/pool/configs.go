@@ -8,6 +8,7 @@ type ConnConfigs struct {
 	MaxLifeDuration time.Duration
 	InitConn        int
 	MaxConn         int
+	EnableTLS       bool
 }
 
 type ConnPoolConfigs struct {
@@ -18,6 +19,7 @@ type ConnPoolConfigs struct {
 func GetConnConfigs(
 	idleTimeout, createTimeout, maxLifeDuration time.Duration,
 	init, capacity int,
+	enableTLS bool,
 ) *ConnConfigs {
 	return &ConnConfigs{
 		IdleTimeout:     idleTimeout,
@@ -25,6 +27,7 @@ func GetConnConfigs(
 		MaxLifeDuration: maxLifeDuration,
 		InitConn:        init,
 		MaxConn:         capacity,
+		EnableTLS:       enableTLS,
 	}
 }
 
@@ -35,6 +38,7 @@ func GetDefaultConnConfigs() *ConnConfigs {
 		MaxLifeDuration: DEFAULT_MAX_LIFE_DURATION,
 		InitConn:        DEFAULT_INIT_CONN,
 		MaxConn:         DEFAULT_MAX_CONN,
+		EnableTLS:       DEFAULT_ENABLE_TLS,
 	}
 }
 
@@ -42,12 +46,14 @@ func GetConnPoolConfigs(
 	server string,
 	idleTimeout, createTimeout, maxLifeDuration time.Duration,
 	init, capacity int,
+	enableTLS bool,
 ) *ConnPoolConfigs {
 	return &ConnPoolConfigs{
 		Server: server,
 		ConnConfigs: GetConnConfigs(
 			idleTimeout, createTimeout, maxLifeDuration,
 			init, capacity,
+			enableTLS,
 		),
 	}
 }

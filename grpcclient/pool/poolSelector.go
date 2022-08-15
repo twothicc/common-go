@@ -151,5 +151,6 @@ func (ps *PoolSelector) getDefaultConnPoolConfigs(server string) *ConnPoolConfig
 		ps.defaultConnConfigs.MaxLifeDuration,
 		ps.defaultConnConfigs.InitConn,
 		ps.defaultConnConfigs.MaxConn,
+		ps.defaultConnConfigs.EnableTLS,
 	)
 }
