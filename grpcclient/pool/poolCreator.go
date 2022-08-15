@@ -52,12 +52,12 @@ func PoolCreator(
 			dialOptions := []grpc.DialOption{
 				grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(unaryClientInterceptors...)),
 				grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(streamClientInterceptors...)),
+				grpc.WithBlock(),
 			}
 
 			if !configs.EnableTLS {
 				dialOptions = append(dialOptions,
 					grpc.WithTransportCredentials(insecure.NewCredentials()),
-					grpc.WithBlock(),
 				)
 			}
 
