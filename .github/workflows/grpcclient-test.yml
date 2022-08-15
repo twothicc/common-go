@@ -1,0 +1,27 @@
+name: grpcclient-test
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - grpcclient/**
+  pull_request:
+    paths:
+      - grpcclient/**
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./grpcclient
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18.3
+
+    - name: Test
+      run: go test -v
