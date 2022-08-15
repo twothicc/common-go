@@ -18,7 +18,6 @@ import (
 
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	opentracing "github.com/opentracing/opentracing-go"
 	grpc_pool "github.com/processout/grpc-go-pool"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
@@ -150,20 +149,6 @@ func parseInterceptors(
 	streamClientInterceptors = []grpc.StreamClientInterceptor{
 		grpc_opentracing.StreamClientInterceptor(),
 		grpc_zap.StreamClientInterceptor(logger.WithContext(ctx)),
-	}
-
-	if !configs.disableProm {
-		unaryClientInterceptors = insertIntoUnaryClientInterceptors(
-			unaryClientInterceptors,
-			grpc_prometheus.UnaryClientInterceptor,
-			PROMETHEUS_INTERCEPTOR_IDX,
-		)
-
-		streamClientInterceptors = insertIntoStreamClientInterceptors(
-			streamClientInterceptors,
-			grpc_prometheus.StreamClientInterceptor,
-			PROMETHEUS_INTERCEPTOR_IDX,
-		)
 	}
 
 	return unaryClientInterceptors, streamClientInterceptors, tracerCloser

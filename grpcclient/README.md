@@ -7,7 +7,6 @@ The gRPC client will have connection pooling.
 The gRPC client will be initialized with these chained middlewares:
 
 - `grpc_opentracing` (default): Configured with a jaeger tracer as global OpenTracing tracer. This middleware will extract parent span context from incoming requests, then creates a new span referencing the parent span context. The span context of the new span is then injected into Tag in handler's context.
-- `grpc_prometheus` (optional): Creates and monitors server metrics
 - `grpc_zap` (default): Configured with common-go logger to log completed gRPC calls. The logger is then populated into the handler's context.
 
 The client can also handle listening for interrupt, terminate, quit os signals to close all connections before shutting down the server.
