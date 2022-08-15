@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/processout/grpc-go-pool v1.2.2-0.20200228131710-c0fcf3af0014
-	github.com/twothicc/common-go/commonerror v0.0.0-20220813162522-b4ffd57fe01b
+	github.com/twothicc/common-go/commonerror v0.0.0-20220815084053-2bc49f4b1954
 	google.golang.org/grpc v1.48.0
 )
 
