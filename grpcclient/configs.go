@@ -11,12 +11,11 @@ type clientConfigs struct {
 	serviceName        string
 	poolCreators       []pool.PoolCreatorFunc
 	isTest             bool
-	disableProm        bool
 }
 
 func GetClientConfigs(
 	serviceName string,
-	isTest, disableProm bool,
+	isTest bool,
 	idleTimeout, createTimeout, maxLifeDuration time.Duration,
 	init, capacity int,
 	enableTLS bool,
@@ -25,11 +24,10 @@ func GetClientConfigs(
 	return &clientConfigs{
 		serviceName: serviceName,
 		isTest:      isTest,
-		disableProm: disableProm,
 		defaultConnConfigs: pool.GetConnConfigs(
 			idleTimeout, createTimeout, maxLifeDuration,
 			init, capacity,
-			false,
+			enableTLS,
 		),
 		poolCreators: poolCreators,
 	}
@@ -43,7 +41,6 @@ func GetDefaultClientConfigs(
 	return &clientConfigs{
 		serviceName:        serviceName,
 		isTest:             isTest,
-		disableProm:        false,
 		defaultConnConfigs: pool.GetDefaultConnConfigs(),
 		poolCreators:       poolCreators,
 	}
