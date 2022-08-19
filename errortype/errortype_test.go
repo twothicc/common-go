@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var dummyErrorType11 = ErrorType{code: 1000, pkg: "dummypackage1"}
-var dummyErrorType22 = ErrorType{code: 2000, pkg: "dummypackage2"}
-var dummyErrorType13 = ErrorType{code: 1000, pkg: "dummypackage3"}
-var dummyErrorType21 = ErrorType{code: 2000, pkg: "dummypackage1"}
+var dummyErrorType11 = ErrorType{Code: 1000, Pkg: "dummypackage1"}
+var dummyErrorType22 = ErrorType{Code: 2000, Pkg: "dummypackage2"}
+var dummyErrorType13 = ErrorType{Code: 1000, Pkg: "dummypackage3"}
+var dummyErrorType21 = ErrorType{Code: 2000, Pkg: "dummypackage1"}
 
 func TestSameCodeDiffPkgIsFalse(t *testing.T) {
 	dummyError11 := dummyErrorType11.New("one")

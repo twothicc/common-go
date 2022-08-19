@@ -18,13 +18,13 @@ type Error struct {
 
 // ErrorType - contains details to differentiate between Errors.
 type ErrorType struct {
-	pkg  string
-	code int32
+	Pkg  string
+	Code int32
 }
 
 // Error - returns formatted string containing error details and error msg.
 func (e *Error) Error() string {
-	return fmt.Sprintf(ErrFormat, e.detail.code, e.detail.pkg, e.msg)
+	return fmt.Sprintf(ErrFormat, e.detail.Code, e.detail.Pkg, e.msg)
 }
 
 // Msg - returns error msg.
@@ -48,7 +48,7 @@ func (e ErrorType) Is(err error) bool {
 		return false
 	}
 
-	return otherErr.detail.code == e.code && otherErr.detail.pkg == e.pkg
+	return otherErr.detail.Code == e.Code && otherErr.detail.Pkg == e.Pkg
 }
 
 // Wrap - if err is of same ErrorType, then no wrapping is done.
@@ -59,8 +59,8 @@ func (e ErrorType) Wrap(err error) IError {
 		return e.New(err.Error())
 	}
 
-	if e.code == otherErr.detail.code &&
-		e.pkg == otherErr.detail.pkg {
+	if e.Code == otherErr.detail.Code &&
+		e.Pkg == otherErr.detail.Pkg {
 		return otherErr
 	}
 
@@ -79,8 +79,8 @@ func (e ErrorType) WrapWithMsg(err error, msg string) IError {
 		return e.New(err.Error())
 	}
 
-	if e.code == otherErr.detail.code &&
-		e.pkg == otherErr.detail.pkg {
+	if e.Code == otherErr.detail.Code &&
+		e.Pkg == otherErr.detail.Pkg {
 		otherErr.msg = msg
 		return otherErr
 	}
