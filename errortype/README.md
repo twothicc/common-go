@@ -12,7 +12,7 @@ Define ErrorType and use it to initialize new Error instances
 ```
 import github.com/twothicc/common-go/errortype
 
-var errorType1 = errortype.ErrorType{code: 1, pkg: "package1"}
+var errorType1 = errortype.ErrorType{Code: 1, Pkg: "package1"}
 
 ...
 
