@@ -5,10 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/twothicc/common-go/commonerror"
 	"github.com/twothicc/common-go/grpcclient/pool"
@@ -81,17 +77,8 @@ func (gc *Client) Call(
 	return nil
 }
 
-// ListenSignals - listens for os signals and closes client if necessary.
-func (gc *Client) ListenSignals(ctx context.Context) {
-	signalChan := make(chan os.Signal, 1)
-
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	sig := <-signalChan
-
-	logger.WithContext(ctx).Info("receive signal, stop server", zap.String("signal", sig.String()))
-	time.Sleep(1 * time.Second)
-
+// Close - closes client
+func (gc *Client) Close(ctx context.Context) {
 	if gc.tracerCloser != nil {
 		if err := gc.tracerCloser.Close(); err != nil {
 			logger.WithContext(ctx).Error("fail to close jaeger tracer")
@@ -104,8 +91,6 @@ func (gc *Client) ListenSignals(ctx context.Context) {
 		gc.Pools.Close()
 		logger.WithContext(ctx).Info("all connections closed and grpc client stopped")
 	}
-
-	logger.Sync()
 }
 
 // returnOrCloseConnection - returns connection obj to pool, or close underlying connection if pool is full
